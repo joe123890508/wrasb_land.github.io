@@ -117,7 +117,7 @@
 <body>
 
 <div class="container">
-  <h1 class="text-center my-3">土地盤點系統</h1>
+  <h1 class="text-center my-3">土地盤點系統1</h1>
 
   <div class="form-container" id="form-content">
     <div class="row">
@@ -409,8 +409,8 @@ var pois = L.geoJson(null, {
     });
 
   function change_county(_county) {
-    village_list.innerHTML="<option value>請選擇鄉鎮</option>";
-    var inner="<option value>請選擇地段</option>";
+    village_list.innerHTML="<option value>請選擇地段</option>";
+    var inner="<option value>請選擇鄉鎮</option>";
     //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
