@@ -278,80 +278,74 @@
     }
 
     // 把原始頁面上的所有輸入欄位轉成純文字段落（保留選取值）const originalElements = Array.from(original.querySelectorAll('input, textarea, select'));
-const originalElements = Array.from(original.querySelectorAll('input, textarea, select'));
-const cloneElements = Array.from(clone.querySelectorAll('input, textarea, select'));
+    const originalElements = Array.from(original.querySelectorAll('input, textarea, select'));
+    const cloneElements = Array.from(clone.querySelectorAll('input, textarea, select'));
 
-cloneElements.forEach(cloneEl => {
-  const name = cloneEl.getAttribute('name') || cloneEl.getAttribute('id');
-  const originalEl = originalElements.find(el =>
-    (el.getAttribute('name') || el.getAttribute('id')) === name
-  );
-
-  if (!originalEl) return;
-
-  const label = cloneEl.previousElementSibling;
-  const labelText = label ? label.textContent.trim() : '';
-
-  const p = document.createElement('p');
-  let valueText = '';
-
-  if (originalEl.tagName.toLowerCase() === 'select') {
-    valueText = originalEl.options[originalEl.selectedIndex]?.text || '';
-  } else {
-    valueText = originalEl.value;
+    cloneElements.forEach(cloneEl => {
+      const name = cloneEl.getAttribute('name') || cloneEl.getAttribute('id');
+      const originalEl = originalElements.find(el =>
+        (el.getAttribute('name') || el.getAttribute('id')) === name
+      );
+      if (!originalEl) return;
+      const label = cloneEl.previousElementSibling;
+      const labelText = label ? label.textContent.trim() : '';
+      const p = document.createElement('p');
+      let valueText = '';
+      if (originalEl.tagName.toLowerCase() === 'select') {
+        valueText = originalEl.options[originalEl.selectedIndex]?.text || '';
+      } else {
+        valueText = originalEl.value;
+      }
+      p.textContent = `${labelText} ${valueText}`;
+      p.style.margin = '0.2em 0';
+      if (label) label.remove();
+      cloneEl.replaceWith(p);
+    });
+    // 圖片處理 (form中的預覽圖片)
+    const imgPreview = clone.querySelector('#preview-image');
+    if (imgPreview) {
+      if (!imgPreview.src) {
+        imgPreview.remove();
+      } else {
+        imgPreview.style.width = '100%';
+        imgPreview.style.height = '100%';
+        imgPreview.style.objectFit = 'fill';
+        imgPreview.classList.add('visible');
+      }
+    }
+    // 移除空白節點，避免多餘空白
+    clone.querySelectorAll('p, div').forEach(el => {
+      if (!el.textContent.trim() && el.querySelectorAll('*').length === 0) {
+        el.remove();
+      }
+    });
+    // 等圖片載入完成後匯出 PDF
+    const waitForImage = new Promise(resolve => {
+      if (!imgPreview || (imgPreview.complete && imgPreview.naturalHeight !== 0)) {
+        resolve();
+      } else {
+        imgPreview.onload = () => resolve();
+        imgPreview.onerror = () => resolve();
+      }
+    });
+    await waitForImage;
+    const opt = {
+      margin: 10,
+      filename: 'form-16x9.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollY: 0,
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait',
+      },
+    };
+    html2pdf().set(opt).from(clone).save();
   }
-
-  p.textContent = `${labelText} ${valueText}`;
-  p.style.margin = '0.2em 0';
-
-  if (label) label.remove();
-  cloneEl.replaceWith(p);
-});
-  // 圖片處理 (form中的預覽圖片)
-  const imgPreview = clone.querySelector('#preview-image');
-  if (imgPreview) {
-    if (!imgPreview.src) {
-      imgPreview.remove();
-    } else {
-      imgPreview.style.width = '100%';
-      imgPreview.style.height = '100%';
-      imgPreview.style.objectFit = 'fill';
-      imgPreview.classList.add('visible');
-    }
-  }
-  // 移除空白節點，避免多餘空白
-  clone.querySelectorAll('p, div').forEach(el => {
-    if (!el.textContent.trim() && el.querySelectorAll('*').length === 0) {
-      el.remove();
-    }
-  });
-  // 等圖片載入完成後匯出 PDF
-  const waitForImage = new Promise(resolve => {
-    if (!imgPreview || (imgPreview.complete && imgPreview.naturalHeight !== 0)) {
-      resolve();
-    } else {
-      imgPreview.onload = () => resolve();
-      imgPreview.onerror = () => resolve();
-    }
-  });
-  await waitForImage;
-  const opt = {
-    margin: 10,
-    filename: 'form-16x9.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      scrollY: 0,
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait',
-    },
-  };
-  html2pdf().set(opt).from(clone).save();
-}
 
 
 google_map_url = 'https://www.google.com/maps/search/?api=1&query='
@@ -411,7 +405,7 @@ var pois = L.geoJson(null, {
 
   function change_county(_county) {
     village_list.innerHTML="<option value>請選擇地段</option>";
-    var inner="<option value>請選擇地段</option>";
+    var inner="<option value>請選擇鄉鎮</option>";
     //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
@@ -427,7 +421,7 @@ var pois = L.geoJson(null, {
   };
 
   function change_town(_town) {
-    var inner="<option value>請選擇鄉鎮</option>";
+    var inner="<option value>請選擇地段</option>";
     //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
