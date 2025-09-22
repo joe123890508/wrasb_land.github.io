@@ -176,7 +176,7 @@
       </div>
     </div>
 
-    <div class="mt-3">
+    <div class="mt-3" id="image_top">
       <label for="image">上傳圖片：</label>
       <input type="file" id="image" class="form-control" accept="image/*" />
     </div>
@@ -250,6 +250,11 @@
     if (gpsBtn) {
       gpsBtn.remove();
     }
+    // 移除圖片路徑
+    const gpsBtn = clone.querySelector("#image_top");
+    if (gpsBtn) {
+      gpsBtn.remove();
+    }
 
     // 從原始 map 元素截圖，不要用 clone 裡的
     const mapElementOriginal = document.querySelector('#map');
@@ -277,7 +282,7 @@
       }
     }
 
-    // 把原始頁面上的所有輸入欄位轉成純文字段落（保留選取值）const originalElements = Array.from(original.querySelectorAll('input, textarea, select'));
+    // 把原始頁面上的所有輸入欄位轉成純文字段落（保留選取值）
     const originalElements = Array.from(original.querySelectorAll('input, textarea, select'));
     const cloneElements = Array.from(clone.querySelectorAll('input, textarea, select'));
 
@@ -331,7 +336,7 @@
     await waitForImage;
     const opt = {
       margin: 10,
-      filename: 'form-16x9.pdf',
+      filename: county + town + village + '.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
         scale: 2,
@@ -394,7 +399,7 @@ var pois = L.geoJson(null, {
       let inner="<option value>請選擇縣市</option>";
         let inner_list = [];
         for (let i=0;i<json['features'].length;i++){
-          let county = json['features'][i].properties.RCOUNTY;
+          county = json['features'][i].properties.RCOUNTY;
           if (!inner_list.includes(county)){
             inner=inner+'<option value='+county+'>'+county+'</option>';
             inner_list.push(county);
@@ -404,13 +409,13 @@ var pois = L.geoJson(null, {
     });
 
   function change_county(_county) {
-    village_list.innerHTML="<option value>請選擇地段</option>";
-    var inner="<option value>請選擇鄉鎮</option>";
+    village_list.innerHTML="<option value>請選擇鄉鎮</option>";
+    var inner="<option value>請選擇地段</option>";
     //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
       if (_county === global_json['features'][i].properties.RCOUNTY){
-        let town = global_json['features'][i].properties.RTOWN;
+        town = global_json['features'][i].properties.RTOWN;
         if (!inner_list.includes(town)){
             inner=inner+'<option value='+town+'>'+town+'</option>';
             inner_list.push(town);
@@ -426,7 +431,7 @@ var pois = L.geoJson(null, {
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
       if (_town === global_json['features'][i].properties.RTOWN){
-        let village = global_json['features'][i].properties.scno;
+        village = global_json['features'][i].properties.scno;
         if (!inner_list.includes(village)){
             inner=inner+'<option value='+village+'>'+village+'</option>';
             inner_list.push(village);
