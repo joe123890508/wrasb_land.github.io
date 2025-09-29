@@ -10,6 +10,6 @@ Publish in 2025/09
 
 Leaflet：https://leafletjs.com/
 
-ChatGPT:https://chatgpt.com/
+ChatGPT：https://chatgpt.com/
 
 博衣可佑理：https://www.youtube.com/channel/UC6eWCld0KwmyHFbAqK3V-Rw
