@@ -101,6 +101,49 @@
     .leaflet-control.basemaps .basemap.alt {
      border-color: #6c757d;
     }
+    #feature-info table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin-top: 10px;
+    }
+    #feature-info th,
+    #feature-info td {
+      padding: 8px 12px;
+      border: 1px solid #dee2e6;
+      vertical-align: top;
+    }
+    #feature-info th {
+      background-color: #f8f9fa;
+      color: #343a40;
+      text-align: left;
+      width: 30%;
+      font-weight: 600;
+    }
+    #feature-info td {
+      text-align: right;
+    }
+    #feature-info tr:hover {
+      background-color: #e9f5ff;
+    }
+    #google_map {
+      background-color: #4285f4; /* Google 藍 */
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 4px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    #google_map:hover {
+      background-color: #3367d6; /* 深一點的藍色 */
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.4);
+    }
+    #google_map:active {
+      background-color: #2a56c6;
+    }
 
 /* 小螢幕 (手機) 底圖控制器改水平排列 */
 @media (max-width: 576px) {
@@ -441,7 +484,7 @@ var pois = L.geoJson(null, {
           };
           table_content = table_content + '</table>'
           document.getElementById("feature-info").innerHTML = table_content
-          document.getElementById("feature-title").innerHTML = feature.properties['LANDNO']
+          document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
           $('#featureModal').modal('show')
           const center = layer.getBounds().getCenter()
           const lat = center.lat
