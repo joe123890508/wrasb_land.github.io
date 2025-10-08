@@ -145,6 +145,25 @@
       background-color: #2a56c6;
     }
 
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner {
+  font-size: 20px;
+  color: #333;
+}
+
+
 /* 小螢幕 (手機) 底圖控制器改水平排列 */
 @media (max-width: 576px) {
   .leaflet-control.basemaps {
@@ -165,6 +184,9 @@
   <h1 class="text-center my-3">南水分署土地盤點系統</h1>
   <div class="form-container" id="form-content">
     <div class="row">
+      <div id="loading-overlay">
+        <div class="spinner">資料載入中，請稍候...</div>
+      </div>
       <div class="col-md-4 col-12">
         <label for="county">縣市：</label>
         <select id="county_list" class="form-select" onchange="change_county(this.value)"></select>
@@ -456,47 +478,86 @@
     });
   }
 
-google_map_url = 'https://www.google.com/maps/search/?api=1&query='
-var pois = L.geoJson(null, {
-  style: function (feature) {
-    return {
-      weight: 1.5, // 線的寬度（預設為 3）
-    };
-  },
-  renderer: L.canvas(),
-  pointToLayer: (feature, latlng) => {
-    return L.marker(latlng);},
-  onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
-          table_content = '<table border="1">'
-          for (let key in feature.properties) {
-            table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
-          };
-          table_content = table_content + '</table>'
-          document.getElementById("feature-info").innerHTML = table_content
-          document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
-          $('#featureModal').modal('show')
-          const center = layer.getBounds().getCenter()
-          const lat = center.lat
-          const lng = center.lng
-          url = google_map_url + lat + ',' +lng
-          $('#google_map').off().on('click', function () {
-            window.open(url);
-          });
-          $('.close').click(function() {
-            $('#featureModal').modal('hide');
-          });
-        });
-  }
-})
+  google_map_url = 'https://www.google.com/maps/search/?api=1&query='
 
-  let global_json;
-  fetch ("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_web.geojson")
-    .then(response => response.json())
-    .then(json => {
-      data=json.features;
-      pois.addData(data);
-      map.addLayer(pois);
+  async function loadAllData() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+    try {
+      const res1 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/compared.json");
+      global_json2 = await res1.json();
+      const res2 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_web2.geojson");
+      global_json = await res2.json();
+      processGeoJson(global_json, global_json2);
+    } catch (error) {
+      console.error("資料載入失敗", error);
+      alert("資料載入失敗，請稍後再試！");
+    } finally {
+      document.getElementById('loading-overlay').style.display = 'none';
+    }
+  }
+  function processGeoJson(json, compareData) {
+    json.features.forEach(feature => {
+        let id1 = feature.properties.區域;
+        feature.properties.區域 = compareData[id1] || "未知";
+        let id2 = feature.properties.單位;
+        feature.properties.單位 = compareData[id2] || "未知";
+      });
+      let data=json.features;
+      let layersByCategory = {}; // 儲存分類圖層
+      function getColorByCategory(category) {
+        const colorMap = {
+          "牡管中心": "green",
+          "高管中心": "blue",
+          "秘書室": "darkmagenta",
+          "資產科": "goldenrod",
+          "阿管中心": "limegreen",
+          "工務科": "royalblue",
+          "曾管中心": "tomato",
+          "甲管中心": "coral",
+          "未知": "gray",
+        };
+        return colorMap[category] || "black";
+      }
+      data.forEach(feature => {
+        let category = feature.properties.單位;
+        if (!layersByCategory[category]) {
+          layersByCategory[category] = L.geoJSON(null, {
+            style: function (feature) {
+              return {
+              weight: 1.35, // 線的寬度（預設為 3）
+              color: getColorByCategory(category)
+              };
+            },
+            onEachFeature: function (feature, layer) {
+              layer.on("click", () => {
+              table_content = '<table border="1">'
+              for (let key in feature.properties) {
+                table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
+              };
+              table_content = table_content + '</table>'
+              document.getElementById("feature-info").innerHTML = table_content
+              document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
+              $('#featureModal').modal('show')
+              const center = layer.getBounds().getCenter()
+              const lat = center.lat
+              const lng = center.lng
+              url = google_map_url + lat + ',' +lng
+              $('#google_map').off().on('click', function () {
+                window.open(url);
+              });
+              $('.close').click(function() {
+                $('#featureModal').modal('hide');
+              });
+              });
+            }
+          });
+        }
+        layersByCategory[category].addData(feature);
+      });
+      for (let category in layersByCategory) {
+        map.addLayer(layersByCategory[category]);
+      }
+      L.control.layers(null, layersByCategory).addTo(map);
       var county_list=document.getElementById("county_list");
       town_list.innerHTML="<option value>請選擇鄉鎮</option>";
       village_list.innerHTML="<option value>請選擇地段</option>";
@@ -511,7 +572,9 @@ var pois = L.geoJson(null, {
           }
         };
       county_list.innerHTML=inner;
-    });
+    }
+loadAllData();
+
   function change_county(_county) {
     county = _county
     village_list.innerHTML="<option value>請選擇地段</option>";
@@ -592,13 +655,11 @@ var pois = L.geoJson(null, {
   )
   // 定義全域變數來儲存 GPS marker，避免重複疊加
   let gpsMarker = null;
-
   document.getElementById("get_gps").addEventListener("click", () => {
     if (!navigator.geolocation) {
       alert("此瀏覽器不支援 GPS 定位！");
       return;
     }
-
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const lat = position.coords.latitude;
