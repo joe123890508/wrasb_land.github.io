@@ -546,6 +546,7 @@
             color: getColorByCategory(category)
           };
         },
+        renderer: L.canvas(),
         onEachFeature: function (f, layer) {
           layer.on("click", () => {
             let table_content = '<table border="1">';
