@@ -300,7 +300,7 @@
 </div>
 
 <script>
-  var map = L.map('map', {center: [22.689,120.436], zoom: 15, zoomControl: true});
+  var map = L.map('map', {center: [22.689,120.436], zoom: 15, zoomControl: true, renderer: L.canvas()});
   L.control.scale({position: 'bottomleft'}).addTo(map);
   var basemaps = [
     L.tileLayer('https://wmts.nlsc.gov.tw/wmts/{id}/default/GoogleMapsCompatible/{z}/{y}/{x}.png', {
@@ -546,29 +546,28 @@
             color: getColorByCategory(category)
           };
         },
-        renderer: L.canvas(),
-        onEachFeature: function (f, layer) {
-          layer.on("click", () => {
-            let table_content = '<table border="1">';
-            for (let key in f.properties) {
-              table_content += `<tr><th>${key}</th><td>${f.properties[key]}</td></tr>`;
-            }
-            table_content += '</table>';
-            document.getElementById("feature-info").innerHTML = table_content;
-            document.getElementById("feature-title").innerHTML =
-              f.properties['scno'] + f.properties['LANDNO'];
-            $('#featureModal').modal('show');
-            const center = layer.getBounds().getCenter();
-            const lat = center.lat;
-            const lng = center.lng;
-            const url = google_map_url + lat + ',' + lng;
-            $('#google_map').off('click').on('click', () => {
-              window.open(url);
-            });
-            $('.close').off('click').on('click', () => {
-              $('#featureModal').modal('hide');
-            });
-          });
+        //renderer: L.canvas(),
+        onEachFeature:  function (feature, layer) {
+              layer.on("click", () => {
+              table_content = '<table border="1">'
+              for (let key in feature.properties) {
+                table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
+              };
+              table_content = table_content + '</table>'
+              document.getElementById("feature-info").innerHTML = table_content
+              document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
+              $('#featureModal').modal('show')
+              const center = layer.getBounds().getCenter()
+              const lat = center.lat
+              const lng = center.lng
+              url = google_map_url + lat + ',' +lng
+              $('#google_map').off().on('click', function () {
+                window.open(url);
+              });
+              $('.close').click(function() {
+                $('#featureModal').modal('hide');
+              });
+              });
         }
       });
       let color = getColorByCategory(category); // 為這個圖層分類建立一個帶色塊的小圖示名稱
@@ -587,22 +586,21 @@
   for (let category in layersByCategory) {
     map.addLayer(layersByCategory[category]);
   }
-
-      var county_list=document.getElementById("county_list");
-      town_list.innerHTML="<option value>請選擇鄉鎮</option>";
-      village_list.innerHTML="<option value>請選擇地段</option>";
-      global_json = json
-      let inner="<option value>請選擇縣市</option>";
-        let inner_list = [];
-        for (let i=0;i<json['features'].length;i++){
-          let county = json['features'][i].properties.RCOUNTY;
-          if (!inner_list.includes(county)){
-            inner=inner+'<option value='+county+'>'+county+'</option>';
-            inner_list.push(county);
-          }
-        };
-      county_list.innerHTML=inner;
-    }
+    var county_list=document.getElementById("county_list");
+    town_list.innerHTML="<option value>請選擇鄉鎮</option>";
+    village_list.innerHTML="<option value>請選擇地段</option>";
+    global_json = json
+    let inner="<option value>請選擇縣市</option>";
+    let inner_list = [];
+    for (let i=0;i<json['features'].length;i++){
+      let county = json['features'][i].properties.RCOUNTY;
+      if (!inner_list.includes(county)){
+        inner=inner+'<option value='+county+'>'+county+'</option>';
+        inner_list.push(county);
+      }
+    };
+    county_list.innerHTML=inner;
+  }
   loadAllData();
   L.control.fullscreen({
     position: 'topleft',
