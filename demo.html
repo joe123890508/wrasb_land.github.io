@@ -10,7 +10,8 @@
   <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css"/>
+  <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -73,33 +74,32 @@
       position: relative;
       box-sizing: border-box;
     }
-    /* === 修正 Leaflet Basemap Control RWD 顯示 === */
-    .leaflet-control.basemaps {
-      background: rgba(255, 255, 255, 0.9);
+    .basemaps {
       padding: 4px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
     }
-    .leaflet-control.basemaps .basemap {
+    .basemaps.closed .basemap {
+      display: none;
+    }
+    .basemaps.closed .basemap.alt {
+      display: inline-block;
+    }
+    .basemaps.closed .basemap.alt h4 {
+      display: none;
+    }
+    .basemap {
+      display: inline-block; /* todo: flexbox? */
       cursor: pointer;
-      border: 2px solid transparent;
-      border-radius: 4px;
-      overflow: hidden;
     }
-    .leaflet-control.basemaps .basemap img {
-      display: block;
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
+    .basemap.active img {
+      border-color: orange;
+      box-shadow: 2px 2px 4px #000;
     }
-    .leaflet-control.basemaps .basemap.active {
-      border-color: #007bff;
-    }
-    .leaflet-control.basemaps .basemap.alt {
-     border-color: #6c757d;
+    .basemap img {
+      width: 64px;
+      border: 2px solid #FFF;
+      margin: 0 2px;
+      border-radius: 40px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.65)
     }
     #feature-info table {
       width: 100%;
@@ -144,38 +144,63 @@
     #google_map:active {
       background-color: #2a56c6;
     }
-
-#loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255,255,255,0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.spinner {
-  font-size: 20px;
-  color: #333;
-}
+    #loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .spinner {
+      font-size: 20px;
+      color: #333;
+    }
 
 
-/* 小螢幕 (手機) 底圖控制器改水平排列 */
-@media (max-width: 576px) {
-  .leaflet-control.basemaps {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+  /* 清單項目標籤 */
+  .leaflet-control-layers label {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    user-select: none;
   }
-  .leaflet-control.basemaps .basemap img {
-    width: 50px;
-    height: 50px;
+  /* 滑鼠滑過項目改色 */
+  .leaflet-control-layers label:hover {
+    background-color: #f0f8ff;
   }
-}
+  /* checkbox 和 radio 按鈕調整大小 */
+  .leaflet-control-layers input[type="checkbox"],
+  .leaflet-control-layers input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+  /* 圖層名稱字體顏色和大小 */
+  .leaflet-control-layers label span {
+    font-size: 14px;
+    color: #333;
+  }
+  /* 捲軸美化（當圖層很多時） */
+  .leaflet-control-layers-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .leaflet-control-layers-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .leaflet-control-layers-list::-webkit-scrollbar-thumb {
+    background-color: #4a90e2;
+    border-radius: 3px;
+  }
   </style>
 </head>
 
@@ -397,8 +422,7 @@
     };
     const cloneContainer = clone;  // 你的複製容器
     clone.style.border = 'none';
-    // 找到第一個 input
-    const firstCloneInput = clone.querySelector(`#${inputIds[0]}`);
+    const firstCloneInput = clone.querySelector(`#${inputIds[0]}`);  // 找到第一個 input
     if (!firstCloneInput) {
       console.error(`找不到 id=${inputIds[0]} 的 input`);
       return;
@@ -409,15 +433,13 @@
       const cloneInput = clone.querySelector(`#${id}`);
       if (!originalInput || !cloneInput) return;
       combinedText += `${labelsMap[id] || ''}${originalInput.value} `;
-      // 移除相關 label（先移除，input 稍後處理）
-      if (cloneInput.closest('label')) {
+      if (cloneInput.closest('label')) { // 移除相關 label（先移除，input 稍後處理）
         cloneInput.closest('label').remove();
       } else {
         const label = clone.querySelector(`label[for="${id}"]`);
         if (label) label.remove();
       }
-      // 除了第一個 input，其他 input 先移除
-      if (id !== inputIds[0]) {
+      if (id !== inputIds[0]) { // 除了第一個 input，其他 input 先移除
         cloneInput.remove();
       }
     });
@@ -425,9 +447,7 @@
     p.classList.add('form-preview-value', 'form-preview-value-people');
     p.textContent = combinedText.trim();
     firstCloneInput.replaceWith(p); // 用 <p> 替換第一個 input
-
-    // 圖片處理 (form中的預覽圖片)
-    const imgPreview = clone.querySelector('#preview-image');
+    const imgPreview = clone.querySelector('#preview-image'); // 圖片處理 (form中的預覽圖片)
     if (imgPreview) {
       if (!imgPreview.src) {
         imgPreview.remove();
@@ -438,14 +458,12 @@
         imgPreview.classList.add('visible');
       }
     }
-    // 移除空白節點，避免多餘空白
-    clone.querySelectorAll('p, div').forEach(el => {
+    clone.querySelectorAll('p, div').forEach(el => { // 移除空白節點，避免多餘空白
       if (!el.textContent.trim() && el.querySelectorAll('*').length === 0) {
         el.remove();
       }
     });
-    // 等圖片載入完成後匯出 PDF
-    const waitForImage = new Promise(resolve => {
+    const waitForImage = new Promise(resolve => { // 等圖片載入完成後匯出 PDF
       if (!imgPreview || (imgPreview.complete && imgPreview.naturalHeight !== 0)) {
         resolve();
       } else {
@@ -479,7 +497,6 @@
   }
 
   google_map_url = 'https://www.google.com/maps/search/?api=1&query='
-
   async function loadAllData() {
     document.getElementById('loading-overlay').style.display = 'flex';
     try {
@@ -511,53 +528,65 @@
           "秘書室": "darkmagenta",
           "資產科": "goldenrod",
           "阿管中心": "limegreen",
-          "工務科": "royalblue",
+          "工務科": "darkcyan",
           "曾管中心": "tomato",
           "甲管中心": "coral",
           "未知": "gray",
         };
         return colorMap[category] || "black";
       }
-      data.forEach(feature => {
-        let category = feature.properties.單位;
-        if (!layersByCategory[category]) {
-          layersByCategory[category] = L.geoJSON(null, {
-            style: function (feature) {
-              return {
-              weight: 1.35, // 線的寬度（預設為 3）
-              color: getColorByCategory(category)
-              };
-            },
-            onEachFeature: function (feature, layer) {
-              layer.on("click", () => {
-              table_content = '<table border="1">'
-              for (let key in feature.properties) {
-                table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
-              };
-              table_content = table_content + '</table>'
-              document.getElementById("feature-info").innerHTML = table_content
-              document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
-              $('#featureModal').modal('show')
-              const center = layer.getBounds().getCenter()
-              const lat = center.lat
-              const lng = center.lng
-              url = google_map_url + lat + ',' +lng
-              $('#google_map').off().on('click', function () {
-                window.open(url);
-              });
-              $('.close').click(function() {
-                $('#featureModal').modal('hide');
-              });
-              });
+  const controlLayers = L.control.layers(null, null, {collapsed: true}).addTo(map);
+  data.forEach(feature => {
+    let category = feature.properties.單位;
+    if (!layersByCategory[category]) {
+      layersByCategory[category] = L.geoJSON(null, {
+        style: function (f) {
+          return {
+            weight: 1.35,
+            color: getColorByCategory(category)
+          };
+        },
+        onEachFeature: function (f, layer) {
+          layer.on("click", () => {
+            let table_content = '<table border="1">';
+            for (let key in f.properties) {
+              table_content += `<tr><th>${key}</th><td>${f.properties[key]}</td></tr>`;
             }
+            table_content += '</table>';
+            document.getElementById("feature-info").innerHTML = table_content;
+            document.getElementById("feature-title").innerHTML =
+              f.properties['scno'] + f.properties['LANDNO'];
+            $('#featureModal').modal('show');
+            const center = layer.getBounds().getCenter();
+            const lat = center.lat;
+            const lng = center.lng;
+            const url = google_map_url + lat + ',' + lng;
+            $('#google_map').off('click').on('click', () => {
+              window.open(url);
+            });
+            $('.close').off('click').on('click', () => {
+              $('#featureModal').modal('hide');
+            });
           });
         }
-        layersByCategory[category].addData(feature);
       });
-      for (let category in layersByCategory) {
-        map.addLayer(layersByCategory[category]);
-      }
-      L.control.layers(null, layersByCategory).addTo(map);
+      let color = getColorByCategory(category); // 為這個圖層分類建立一個帶色塊的小圖示名稱
+      let nameWithIcon = `
+        <span style="
+          display:inline-block;
+          width:12px; height:12px;
+          background:${color};
+          margin-right:6px;
+          border-radius:3px;
+        "></span>${category}`;
+      controlLayers.addOverlay(layersByCategory[category], nameWithIcon);
+    }
+    layersByCategory[category].addData(feature);
+  });
+  for (let category in layersByCategory) {
+    map.addLayer(layersByCategory[category]);
+  }
+
       var county_list=document.getElementById("county_list");
       town_list.innerHTML="<option value>請選擇鄉鎮</option>";
       village_list.innerHTML="<option value>請選擇地段</option>";
@@ -573,13 +602,18 @@
         };
       county_list.innerHTML=inner;
     }
-loadAllData();
+  loadAllData();
+  L.control.fullscreen({
+    position: 'topleft',
+    forceSeparateButton: true,
+    forcePseudoFullscreen: true,
+    fullscreenElement: false
+  }).addTo(map);
 
   function change_county(_county) {
     county = _county
     village_list.innerHTML="<option value>請選擇地段</option>";
     var inner="<option value>請選擇鄉鎮</option>";
-    //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
       if (_county === global_json['features'][i].properties.RCOUNTY){
@@ -595,7 +629,6 @@ loadAllData();
   function change_town(_town) {
     town = _town
     var inner="<option value>請選擇地段</option>";
-    //console.log(county);
     let inner_list = []
     for (let i=0;i<global_json['features'].length;i++){
       if (_town === global_json['features'][i].properties.RTOWN){
@@ -633,16 +666,14 @@ loadAllData();
     } else {
       const feature = global_json['features'][_selected];
       let coords = feature.geometry;
-      // 支援點線面的中心點
-      let center;
+      let center; // 支援點線面的中心點
       if (coords.type === "Point") {
         center = {
           lat: coords.coordinates[1],
           lng: coords.coordinates[0]
         };
       } else {
-        // 線或面 — 使用 Leaflet 來取得中心
-        const layer = L.geoJSON(feature);
+        const layer = L.geoJSON(feature); // 線或面 — 使用 Leaflet 來取得中心
         center = layer.getBounds().getCenter();
       }
       map.flyTo(center, 18, { duration: 1.5 }); // 移動到該地點
@@ -653,8 +684,7 @@ loadAllData();
       }
     }
   )
-  // 定義全域變數來儲存 GPS marker，避免重複疊加
-  let gpsMarker = null;
+  let gpsMarker = null; // 定義全域變數來儲存 GPS marker，避免重複疊加
   document.getElementById("get_gps").addEventListener("click", () => {
     if (!navigator.geolocation) {
       alert("此瀏覽器不支援 GPS 定位！");
@@ -664,16 +694,11 @@ loadAllData();
     (position) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
-
-      // 清除舊的 GPS marker
       if (gpsMarker) {
-        map.removeLayer(gpsMarker);
+        map.removeLayer(gpsMarker); // 清除舊的 GPS marker
       }
-      // 新增 GPS marker
-      gpsMarker = L.marker([lat, lng]).addTo(map);
-
-      // 將地圖移動到當前位置
-      map.flyTo([lat, lng], 17); // 可調整 zoom
+      gpsMarker = L.marker([lat, lng]).addTo(map); // 新增 GPS marker
+      map.flyTo([lat, lng], 17); // 將地圖移動到當前位置(可調整 zoom)
     },
     (error) => {
       switch (error.code) {
