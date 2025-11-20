@@ -213,15 +213,15 @@
         <div class="spinner">資料載入中，請稍候...</div>
       </div>
       <div class="col-md-4 col-12">
-        <label for="county">縣市：</label>
+        <label for="county_list">縣市：</label>
         <select id="county_list" class="form-select" onchange="change_county(this.value)"></select>
       </div>
       <div class="col-md-4 col-12">
-        <label for="town">行政區：</label>
+        <label for="town_list">行政區：</label>
         <select id="town_list" class="form-select" onchange="change_town(this.value)"></select>
       </div>
       <div class="col-md-4 col-12">
-        <label for="dist">地段：</label>
+        <label for="village_list">地段：</label>
         <select id="village_list" class="form-select" onchange="change_village(this.value)"></select>
       </div>
     </div>
@@ -244,7 +244,7 @@
     </div>
     <div class="row mt-2">
       <div class="col-md-6 col-12">
-        <label for="occupation">是否有佔用情形：</label>
+        <label for="occupation_list">是否有佔用情形：</label>
         <select id="occupation_list" class="form-select">
           <option value="0">請選擇</option>
           <option value="1">是</option>
@@ -252,7 +252,7 @@
         </select>
       </div>
       <div class="col-md-6 col-12">
-        <label for="break">是否有設施損壞、異常情形：</label>
+        <label for="break_list">是否有設施損壞、異常情形：</label>
         <select id="break_list" class="form-select">
           <option value="0">請選擇</option>
           <option value="1">是</option>
@@ -502,7 +502,7 @@
     try {
       const res1 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/compared.json");
       global_json2 = await res1.json();
-      const res2 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_web2.geojson");
+      const res2 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_web.geojson");
       global_json = await res2.json();
       processGeoJson(global_json, global_json2);
     } catch (error) {
@@ -548,26 +548,35 @@
         },
         //renderer: L.canvas(),
         onEachFeature:  function (feature, layer) {
-              layer.on("click", () => {
-              table_content = '<table border="1">'
-              for (let key in feature.properties) {
-                table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
-              };
-              table_content = table_content + '</table>'
-              document.getElementById("feature-info").innerHTML = table_content
-              document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
-              $('#featureModal').modal('show')
-              const center = layer.getBounds().getCenter()
-              const lat = center.lat
-              const lng = center.lng
-              url = google_map_url + lat + ',' +lng
-              $('#google_map').off().on('click', function () {
-                window.open(url);
-              });
-              $('.close').click(function() {
-                $('#featureModal').modal('hide');
-              });
-              });
+          layer.on("click", () => {
+          $('#featureModal')
+          .on('show.bs.modal', function () {
+            map.dragging.disable();
+            map.scrollWheelZoom.disable();
+          })
+          .on('hidden.bs.modal', function () {
+            map.dragging.enable();
+            map.scrollWheelZoom.enable();
+          });
+          table_content = '<table border="1">'
+          for (let key in feature.properties) {
+            table_content = table_content + '<tr><th>' + key + '</th><td>' + feature.properties[key] + '</td></tr>'
+          };
+          table_content = table_content + '</table>'
+          document.getElementById("feature-info").innerHTML = table_content
+          document.getElementById("feature-title").innerHTML = feature.properties['scno'] + feature.properties['LANDNO']
+          $('#featureModal').modal('show')
+          const center = layer.getBounds().getCenter()
+          const lat = center.lat
+          const lng = center.lng
+          url = google_map_url + lat + ',' +lng
+          $('#google_map').off().on('click', function () {
+            window.open(url);
+          });
+          $('.close').click(function() {
+          $('#featureModal').modal('hide');
+          });
+        });
         }
       });
       let color = getColorByCategory(category); // 為這個圖層分類建立一個帶色塊的小圖示名稱
@@ -717,6 +726,5 @@
   );
 });
   </script>
-
 </body>
 </html>
