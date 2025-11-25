@@ -75,20 +75,25 @@
       #search {
         height: 50%;
         width: 98%;
-        overflow-y: auto; /* 手機版 #search 捲軸 */
-      }
-      #search_area {
-        /* 固定在上方 */
-        position: static;
-      }
-      #search_result {
-        overflow-y: visible; /* 手機版不要獨立捲軸 */
       }
     }
     /* 小螢幕優化 */
-    @media (max-width: 120px) {
-      select, input, textarea, button {
+    @media (max-width: 500px) {
+      select, input, textarea{
         width: 100% !important;
+      }
+    }
+    @media (max-height: 900px) {
+      #search {
+        height: 50%;
+        width: 98%;
+        overflow-y: auto;
+      }
+      #search_area {
+        position: static;
+      }
+      #search_result {
+        overflow-y: visible;
       }
     }
     .form-preview-value {
