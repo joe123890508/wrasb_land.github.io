@@ -657,8 +657,8 @@
   button.addEventListener("click",
     function () {
       _selected = -1
-      inputValue1 = document.getElementById("pmno").value;
-      inputValue2 = document.getElementById("pcno").value;
+      inputValue1 = document.getElementById("pmno").value.padStart(4, "0");
+      inputValue2 = document.getElementById("pcno").value.padStart(4, "0");
       for (let i=0;i<global_json['features'].length;i++){
         if (village === global_json['features'][i].properties.scno){
           if (inputValue1 === global_json['features'][i].properties.pmno){
