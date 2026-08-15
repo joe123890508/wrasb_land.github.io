@@ -6,7 +6,7 @@ Publish in 2025/09
 
 - [Demo網站](https://joe123890508.github.io/wrasb_land.github.io/)
 
-本網站分為兩個子系統，可針對[經濟部水利署南區水資源分署](https://www.wra.gov.tw/wrasb/)的內部作業需求，針對土地、土地改良物及建物，進行包含查詢、顯示、篩選、定位、報告文件產生等複雜的工作。地圖框架使用[Leaflet](https://leafletjs.com/)，底圖使用[內政部國土測繪中心](https://maps.nlsc.gov.tw/)的台灣通用電子地圖等，UI系統主要使用[Bootstrap 5](https://getbootstrap.com/)設計，所有資料與運算都在使用者的前端進行處理，保證最大程度的資訊安全。
+本網站分為兩個子系統，可針對[經濟部水利署南區水資源分署](https://www.wra.gov.tw/wrasb/)的內部作業需求，針對土地、土地改良物及建物，進行包含查詢、顯示、篩選、定位、報告文件產生等複雜的工作。地圖框架使用[Leaflet](https://leafletjs.com/)，底圖使用[內政部國土測繪中心](https://maps.nlsc.gov.tw/)的台灣通用電子地圖等，UI系統主要使用[Bootstrap 5](https://getbootstrap.com/)設計，資料更新至114年9月，所有資料與運算都在使用者的前端進行處理，保證最大程度的資訊安全。
 
 
 ## 操作說明
@@ -26,12 +26,13 @@ wrasb_land.github.io/
     ├─ 114wrasb_web.geojson             // 土地資料
     ├─ compared.json                    // 為了壓縮土地資料量把一些重複的資料提取出來
     ├─ facility.html                    // 土改及建物盤點系統主網頁
-    ├─ index.html                       // 土地盤點系統主網頁
-    ├─ land.html                        // 降落頁面
+    ├─ index.html                       // 降落頁面
+    ├─ land.html                        // 土地盤點系統主網頁
     └─ README.md
 ```
 
 
 ## 特別感謝
 ChatGPT：https://chatgpt.com/
+
 博衣可佑理：https://www.youtube.com/channel/UC6eWCld0KwmyHFbAqK3V-Rw
