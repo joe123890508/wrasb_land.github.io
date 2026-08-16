@@ -2,465 +2,388 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>南水分署土改及建物盤點系統</title>
+  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <!-- Leaflet & Plugins -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css"/>
   <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-    }
-    /* 地圖 RWD */
-    #container {
-      display: flex;
-      flex-direction: row;
-      height: 85vh;
-      min-height: 250px;
-      width: 100vw;
-      justify-content: center; /* 水平置中 */
-      /* margin: 10px 0; */
-    }
-    #map {
-      height: 99%;
-      width: 48%;
-    }
-    #search {
+    html, body {
       height: 100%;
-      width: 48%;
-      padding-left: 15px;
-      padding-right: 15px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    body {
       display: flex;
       flex-direction: column;
     }
-    #search_area {
-      /* 固定在上方 */
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 10;
-      padding-bottom: 10px;
-    }
-    #search_result {
-      /* 讓結果區域可以捲動 */
+    .container-fluid {
       flex: 1;
-      overflow-y: auto;
-      padding-top: 15px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
-    #search_result th {
-      text-align: center;   /* 置中 */
-      vertical-align: middle;
+    #main-container {
+      flex: 1;
+      min-height: 0;
     }
-    #search_result td {
-      text-align: center;   /* 置中 */
-      vertical-align: middle;
-    }
-    /* 手機 (長寬比小於 1) */
-    @media (max-aspect-ratio: 1/1) {
-      #container {
-        flex-direction: column;
-        justify-content: center;
-      }
-      #map {
-        height: 50%;
-        min-height: 180px;
-        width: 98%;
-      }
-      #search {
-        height: 50%;
-        width: 98%;
-      }
-    }
-    /* 小螢幕優化 */
-    @media (max-width: 500px) {
-      select, input, textarea{
-        width: 100% !important;
-      }
-    }
-    @media (max-height: 900px) {
-      #search {
-        height: 50%;
-        width: 98%;
-        overflow-y: auto;
-      }
-      #search_area {
-        position: static;
-      }
-      #search_result {
-        overflow-y: visible;
-      }
-    }
-    .form-preview-value {
-      margin: 0.2em 0;
-      white-space:pre-wrap;
-    }
-    .form-preview-value-people {
-      white-space: pre-wrap;
-      width: 100vw;
+    footer {
+      height: 30px;
+      line-height: 30px;
       position: relative;
-      box-sizing: border-box;
+      flex-shrink: 0;
     }
-    .basemaps {
-      padding: 4px;
+    #map, #search { height: 95%; }
+    @media (max-width: 767.98px) {
+      footer {
+        height: 20px;
+        line-height: 20px;
+      }
+      #main-container { 
+        flex: 1;
+        min-height: 0;
+      }
+      /* 頁面標題緊湊化 */
+      h1 {
+        font-size: 1.25rem;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+      }
+      #map { 
+        flex: 1;
+        max-height: 35vh;
+      }
+      /* 搜尋區塊高動態調整 */
+      #search {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        max-height: 50vh;
+        overflow-x: hidden;
+      }
+      /* 搜尋表單縮小字體與間距 */
+      #search_area .col-4 {
+        width: 35%;
+        font-size: 0.875rem;
+        padding-right: 0;
+      }
+      #search_area .col-8 { width: 65%; }
+      .form-control, .form-select {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+      }
+      .form-label, .col-form-label {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
+      #search_result { max-height: 250px; }
+      #search_result table { font-size: 0.8rem; }
+      #search_result th, #search_result td { padding: 0.3rem 0.2rem; }
+      .search-button {
+        padding: 0.1rem 0.4rem;
+        font-size: 0.75rem;
+      }
+      .basemap img { width: 48px; }
+      .leaflet-control-layers-list {
+        max-height: 160px;
+        font-size: 0.8rem;
+      }
+      /* 手機版 Modal 微調 */
+      .modal-dialog { margin: 0.75rem; }
     }
-    .basemaps.closed .basemap {
-      display: none;
-    }
-    .basemaps.closed .basemap.alt {
-      display: inline-block;
-    }
-    .basemaps.closed .basemap.alt h4 {
-      display: none;
-    }
-    .basemap {
-      display: inline-block; /* todo: flexbox? */
-      cursor: pointer;
-    }
-    .basemap.active img {
-      border-color: orange;
-      box-shadow: 2px 2px 4px #000;
-    }
-    .basemap img {
-      width: 70px;
-      border: 2px solid #FFF;
-      margin: 0 2px;
-      border-radius: 50%;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.65)
-    }
-    #feature-info table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.95rem;
-      margin-top: 10px;
-    }
-    #feature-info th,
-    #feature-info td {
-      padding: 8px 12px;
-      border: 1px solid #dee2e6;
-      vertical-align: top;
-    }
-    #feature-info th {
-      background-color: #f8f9fa;
-      color: #343a40;
-      text-align: left;
-      width: 30%;
-      font-weight: 600;
-    }
-    #feature-info td {
-      text-align: right;
-    }
-    #feature-info tr:hover {
-      background-color: #e9f5ff;
-    }
-    .button {
-      background-color: #4285f4; /* Google 藍 */
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      font-size: 1rem;
-      font-weight: 500;
-      border-radius: 4px;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .button:hover {
-      background-color: #3367d6;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.4);
-    }
-    .button:active {
-      background-color: #2a56c6;
-    }
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255,255,255,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    .spinner {
-      font-size: 20px;
-      color: #333;
-    }
-    /* 清單項目標籤 */
-    .leaflet-control-layers label {
-      display: flex;
-      align-items: center;
-      padding: 6px 8px;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-    .leaflet-control-layers label:hover {
-      background-color: #f0f8ff;
-    }
-    /* checkbox 和 radio 按鈕調整大小 */
+
+    /* 底圖選擇器 */
+    .basemaps { padding: 4px; }
+    .basemaps.closed .basemap { display: none; }
+    .basemaps.closed .basemap.alt { display: inline-block; }
+    .basemaps.closed .basemap.alt h4 { display: none; }
+    .basemap { display: inline-block; cursor: pointer; }
+    .basemap.active img { border-color: orange; box-shadow: 2px 2px 4px #000; }
+    .basemap img { width: 70px; border: 2px solid #FFF; margin: 0 2px; border-radius: 50%; box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+    
+    /* Leaflet 圖層控制選項美化 */
+    .leaflet-control-layers label { display: flex; align-items: center; padding: 6px 8px; cursor: pointer; border-radius: 6px; transition: background-color 0.3s; user-select: none; }
+    .leaflet-control-layers label:hover { background-color: #f0f8ff; }
     .leaflet-control-layers input[type="checkbox"],
-    .leaflet-control-layers input[type="radio"] {
-      margin-right: 10px;
-      transform: scale(1.2);
-      cursor: pointer;
+    .leaflet-control-layers input[type="radio"] { margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+    .leaflet-control-layers-list { max-height: 250px; overflow-y: auto; padding-right: 4px; }
+    .leaflet-control-layers-list::-webkit-scrollbar { width: 6px; }
+    .leaflet-control-layers-list::-webkit-scrollbar-thumb { background-color: #4a90e2; border-radius: 3px; }
+
+    #featureModal .modal-content {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
     }
-    /* 圖層名稱字體顏色和大小 */
-    .leaflet-control-layers label span {
-      font-size: 14px;
-      color: #333;
+    #featureModal .modal-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      padding: 0.9rem 1.25rem;
     }
-    /* 捲軸美化（當圖層很多時） */
-    .leaflet-control-layers-list {
-      max-height: 250px;
-      overflow-y: auto;
-      padding-right: 4px;
+    #featureModal .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a252f;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    .leaflet-control-layers-list::-webkit-scrollbar {
-      width: 6px;
+    #featureModal .modal-body {
+      background-color: #ffffff;
+      max-height: 65vh;
     }
-    .leaflet-control-layers-list::-webkit-scrollbar-thumb {
-      background-color: #4a90e2;
-      border-radius: 3px;
+
+    /* Modal 特徵資訊表格美化 */
+    .custom-feature-table {
+      width: 100%;
+      font-size: 0.875rem;
+      border-collapse: collapse;
+    }
+    .custom-feature-table th {
+      width: 35%;
+      background-color: #f8f9fa;
+      color: #495057;
+      font-weight: 600;
+      padding: 0.65rem 0.9rem;
+      border-bottom: 1px solid #edf2f7;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    .custom-feature-table td {
+      color: #212529;
+      padding: 0.65rem 0.9rem;
+      border-bottom: 1px solid #edf2f7;
+      vertical-align: top;
+      word-break: break-word;
+    }
+    .custom-feature-table tr:last-child th,
+    .custom-feature-table tr:last-child td {
+      border-bottom: none;
+    }
+    .custom-feature-table tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    #featureModal .modal-footer {
+      border-top: 1px solid #e9ecef;
+      padding: 0.75rem 1.25rem;
+      background-color: #f8f9fa;
+    }
+    #google_map {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 0.4rem 0.85rem;
     }
   </style>
 </head>
 
 <body>
-<div class="body_container">
-  <h1 class="text-center my-3">南水分署土改及建物盤點系統</h1>
-    <div class="row">
-      <div id="loading-overlay">
-        <div class="spinner">資料載入中，請稍候...</div>
+<div class="container-fluid px-3">
+  <h1 class="h2 text-center my-3 fw-bold">南水分署土改及建物盤點系統</h1>
+  <!-- 全螢幕 Loading 遮罩 -->
+  <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center fs-5 fw-bold text-secondary" style="z-index: 9999;">
+    資料載入中，請稍候...
+  </div>
+  <!-- 主佈局區塊 -->
+  <div id="main-container" class="row g-3">
+    <!-- 左側 / 上方：搜尋與結果區 -->
+    <div id="search" class="col-12 col-md-6 d-flex flex-column h-100">
+      <div id="search_area" class="sticky-top bg-white pt-2 pb-2 z-1">
+        <div class="row mb-2 align-items-center">
+          <label for="number" class="col-4 col-form-label">財產編號：</label>
+          <div class="col-8">
+            <input type="text" id="number" name="number" class="form-control"/>
+          </div>
+        </div>
+        <div class="row mb-2 align-items-center">
+          <label for="unit" class="col-4 col-form-label">保管單位：</label>
+          <div class="col-8">
+            <select id="unit" class="form-select"></select>
+          </div>
+        </div>
+        <div class="row mb-2 align-items-center">
+          <label for="people" class="col-4 col-form-label">保管人：</label>
+          <div class="col-8">
+            <input type="text" id="people" name="people" class="form-control"/>
+          </div>
+        </div>
+        <div class="row mb-2 align-items-center">
+          <label for="card" class="col-4 col-form-label">是否貼牌：</label>
+          <div class="col-8">
+            <select id="card" class="form-select">
+              <option value="請選擇">請選擇</option>
+              <option value="是">是</option>
+              <option value="否">否</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mb-2 align-items-center">
+          <label for="qr" class="col-4 col-form-label">是否QRCode：</label>
+          <div class="col-8">
+            <select id="qr" class="form-select">
+              <option value="請選擇">請選擇</option>
+              <option value="有">是</option>
+              <option value="無">否</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mt-3 justify-content-center">
+          <div class="col-10">
+            <button type="button" class="btn btn-primary w-100" id="confirm">查詢</button>
+          </div>
+        </div>
+      </div>
+      <div id="search_result" class="flex-grow-1 overflow-auto pt-2">
+        <table class="table table-striped table-hover text-center align-middle">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th scope="col">財產編號</th>
+              <th scope="col">保管單位</th>
+              <th scope="col">保管人</th>
+              <th scope="col">位置</th>
+            </tr>
+          </thead>
+          <tbody id="search_result_list"></tbody>
+        </table>
       </div>
     </div>
-    <div id="container" class="mt-3">
-      <div id="search">
-        <div id="search_area">
-          <div class="row mb-2">
-            <label for="number" class="col-form-label col-4">財產編號：</label>
-            <div class="col-8">
-              <input type="text" id="number" name="number" class="form-control"/>
+    <!-- 右側 / 下方：地圖區 -->
+    <div id="map" class="col-12 col-md-6 rounded border">
+      <!-- Modal 特徵詳情 -->
+      <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="feature-title"></h5>
+              <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-          </div>
-          <div class="row mb-2">
-            <label for="unit" class="col-form-label col-4">保管單位：</label>
-            <div class="col-8">
-              <select id="unit" class="form-select"></select>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <label for="people" class="col-form-label col-4">保管人：</label>
-            <div class="col-8">
-              <input type="text" id="people" name="people" class="form-control"/>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <label for="card" class="col-form-label col-4">是否貼牌：</label>
-            <div class="col-8">
-              <select id="card" class="form-select">
-                <option value="請選擇">請選擇</option>
-                <option value="是">是</option>
-                <option value="否">否</option>
-              </select>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <label for="qr" class="col-form-label col-4">是否QRCode：</label>
-            <div class="col-8">
-              <select id="qr" class="form-select">
-                <option value="請選擇">請選擇</option>
-                <option value="有">是</option>
-                <option value="無">否</option>
-              </select>
-            </div>
-          </div>
-          <div class="row mb-2 mt-3 justify-content-center" style="width:100%;">
-            <button type="button" class="btn btn-default button mb-2 col-10" id="confirm">查詢</button>
-          </div>
-        </div>
-        <div id="search_result">
-          <table class="table table-striped table-hover" >
-            <thead>
-              <tr>
-                <th scope="col">財產編號</th>
-                <th scope="col">保管單位</th>
-                <th scope="col">保管人</th>
-                <th scope="col">位置</th>
-              </tr>
-            </thead>
-            <tbody id="search_result_list">
-
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="map">
-        <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title text-primary" id="feature-title"></h4>
-                <button class="close" type="button" data-bs-dismiss="modal">×</button>
-              </div>
-              <div class="modal-body" id="feature-info"></div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default button" id="google_map">在Google地圖開啟</button>
-              </div>
+            <div class="modal-body p-0" id="feature-info"></div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" id="google_map">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                  <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+                </svg>
+                在 Google 地圖開啟
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 </div>
+<footer class="bg-black text-white text-center">
+  © <strong>2025 <a href="https://www.wra.gov.tw/wrasb/" class="text-decoration-none text-primary">WRASB</a></strong>.
+  All rights reserved.
+</footer>
 <script>
   var map = L.map('map', {center: [22.689,120.436], zoom: 15, zoomControl: true, renderer: L.canvas()});
   L.control.scale({position: 'bottomleft'}).addTo(map);
   var basemaps = [
     L.tileLayer('https://wmts.nlsc.gov.tw/wmts/{id}/default/GoogleMapsCompatible/{z}/{y}/{x}.png', {
-    maxZoom: 20,
-    id: 'EMAP',
-    label: '測試一' }),
+      maxZoom: 20, id: 'EMAP', label: '測試一' }),
     L.tileLayer('https://wmts.nlsc.gov.tw/wmts/{id}/default/GoogleMapsCompatible/{z}/{y}/{x}.png', {
-    maxZoom: 20,
-    id: 'PHOTO2',
-    label: '測試二' }),
+      maxZoom: 20, id: 'PHOTO2', label: '測試二' }),
     L.tileLayer('https://wmts.nlsc.gov.tw/wmts/{id}/default/GoogleMapsCompatible/{z}/{y}/{x}.png', {
-      maxZoom: 20,
-      id: 'LUIMAP',
-      label: '測試三' })
+      maxZoom: 20, id: 'LUIMAP', label: '測試三' })
   ];
-  L.Control.Basemaps=L.Control.extend({_map:null,includes:L.Evented?L.Evented.prototype:L.Mixin.Event,options:{position:"bottomright",tileX:0,tileY:0,tileZ:0,layers:[]},basemap:null,onAdd:function(e){this._map=e;var t=L.DomUtil.create("div","basemaps leaflet-control closed");return L.DomEvent.disableClickPropagation(t),L.Browser.touch||L.DomEvent.disableScrollPropagation(t),this.options.basemaps.forEach(function(s,o){var a,i="basemap";if(0===o?(this.basemap=s,this._map.addLayer(s),i+=" active"):1===o&&(i+=" alt"),s.options.iconURL)a=s.options.iconURL;else{var l={x:this.options.tileX,y:this.options.tileY};if(a=L.Util.template(s._url,L.extend({s:s._getSubdomain(l),x:l.x,y:s.options.tms?s._globalTileRange.max.y-l.y:l.y,z:this.options.tileZ},s.options)),s instanceof L.TileLayer.WMS){s._map=e;var n=s.options.crs||e.options.crs,r=L.extend({},s.wmsParams),m=parseFloat(r.version);r[m>=1.3?"crs":"srs"]=n.code;var p=L.point(l);p.z=this.options.tileZ;var c=s._tileCoordsToBounds(p),d=n.project(c.getNorthWest()),h=n.project(c.getSouthEast()),v=(m>=1.3&&n===L.CRS.EPSG4326?[h.y,d.x,d.y,h.x]:[d.x,h.y,h.x,d.y]).join(",");a+=L.Util.getParamString(r,a,s.options.uppercase)+(s.options.uppercase?"&BBOX=":"&bbox=")+v}}var b=L.DomUtil.create("div",i,t),u=L.DomUtil.create("img",null,b);u.src=a,s.options&&s.options.label&&(u.title=s.options.label),L.DomEvent.on(b,"click",function(){if(this.options.basemaps.length>2&&L.Browser.mobile&&L.DomUtil.hasClass(t,"closed"))L.DomUtil.removeClass(t,"closed");else if(s!=this.basemap){e.removeLayer(this.basemap),e.addLayer(s),s.bringToBack(),e.fire("baselayerchange",s),this.basemap=s,L.DomUtil.removeClass(t.getElementsByClassName("basemap active")[0],"active"),L.DomUtil.addClass(b,"active");var a=(o+1)%this.options.basemaps.length;L.DomUtil.removeClass(t.getElementsByClassName("basemap alt")[0],"alt"),L.DomUtil.addClass(t.getElementsByClassName("basemap")[a],"alt"),L.DomUtil.addClass(t,"closed")}},this)},this),this.options.basemaps.length>2&&!L.Browser.mobile&&(L.DomEvent.on(t,"mouseenter",function(){L.DomUtil.removeClass(t,"closed")},this),L.DomEvent.on(t,"mouseleave",function(){L.DomUtil.addClass(t,"closed")},this)),this._container=t,this._container}}),L.control.basemaps=function(e){return new L.Control.Basemaps(e)};
-  map.addControl(L.control.basemaps({
-    basemaps: basemaps,
-    tileX: 854,
-    tileY: 444,
-    tileZ: 10
-  }));
-google_map_url = 'https://www.google.com/maps/search/?api=1&query=';
-// 讀取資料
-async function loadAllData() {
-  document.getElementById('loading-overlay').style.display = 'flex';
-  try {
-    const res1 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_fac.geojson");
-    vardata = await res1.json();
-    renderGeoJson(vardata);
-  } catch (error) {
-    console.error("資料載入失敗", error);
-    alert("資料載入失敗，請稍後再試！");
-  } finally {
-    document.getElementById('loading-overlay').style.display = 'none';
+  L.Control.Basemaps = L.Control.extend({_map:null,includes:L.Evented?L.Evented.prototype:L.Mixin.Event,options:{position:"bottomright",tileX:0,tileY:0,tileZ:0,layers:[]},basemap:null,onAdd:function(e){this._map=e;var t=L.DomUtil.create("div","basemaps leaflet-control closed");return L.DomEvent.disableClickPropagation(t),L.Browser.touch||L.DomEvent.disableScrollPropagation(t),this.options.basemaps.forEach(function(s,o){var a,i="basemap";if(0===o?(this.basemap=s,this._map.addLayer(s),i+=" active"):1===o&&(i+=" alt"),s.options.iconURL)a=s.options.iconURL;else{var l={x:this.options.tileX,y:this.options.tileY};if(a=L.Util.template(s._url,L.extend({s:s._getSubdomain(l),x:l.x,y:s.options.tms?s._globalTileRange.max.y-l.y:l.y,z:this.options.tileZ},s.options)),s instanceof L.TileLayer.WMS){s._map=e;var n=s.options.crs||e.options.crs,r=L.extend({},s.wmsParams),m=parseFloat(r.version);r[m>=1.3?"crs":"srs"]=n.code;var p=L.point(l);p.z=this.options.tileZ;var c=s._tileCoordsToBounds(p),d=n.project(c.getNorthWest()),h=n.project(c.getSouthEast()),v=(m>=1.3&&n===L.CRS.EPSG4326?[h.y,d.x,d.y,h.x]:[d.x,h.y,h.x,d.y]).join(",");a+=L.Util.getParamString(r,a,s.options.uppercase)+(s.options.uppercase?"&BBOX=":"&bbox=")+v}}var b=L.DomUtil.create("div",i,t),u=L.DomUtil.create("img",null,b);u.src=a,s.options&&s.options.label&&(u.title=s.options.label),L.DomEvent.on(b,"click",function(){if(this.options.basemaps.length>2&&L.Browser.mobile&&L.DomUtil.hasClass(t,"closed"))L.DomUtil.removeClass(t,"closed");else if(s!=this.basemap){e.removeLayer(this.basemap),e.addLayer(s),s.bringToBack(),e.fire("baselayerchange",s),this.basemap=s,L.DomUtil.removeClass(t.getElementsByClassName("basemap active")[0],"active"),L.DomUtil.addClass(b,"active");var a=(o+1)%this.options.basemaps.length;L.DomUtil.removeClass(t.getElementsByClassName("basemap alt")[0],"alt"),L.DomUtil.addClass(t.getElementsByClassName("basemap")[a],"alt"),L.DomUtil.addClass(t,"closed")}},this)},this),this.options.basemaps.length>2&&!L.Browser.mobile&&(L.DomEvent.on(t,"mouseenter",function(){L.DomUtil.removeClass(t,"closed")},this),L.DomEvent.on(t,"mouseleave",function(){L.DomUtil.addClass(t,"closed")},this)),this._container=t,this._container}}),L.control.basemaps=function(e){return new L.Control.Basemaps(e)};
+  map.addControl(L.control.basemaps({ basemaps: basemaps, tileX: 854, tileY: 444, tileZ: 10 }));
+  google_map_url = 'https://www.google.com/maps/search/?api=1&query=';
+  async function loadAllData() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    loadingOverlay.classList.remove('d-none');
+    try {
+      const res1 = await fetch("https://joe123890508.github.io/wrasb_land.github.io/114wrasb_fac.geojson");
+      vardata = await res1.json();
+      renderGeoJson(vardata);
+    } catch (error) {
+      console.error("資料載入失敗", error);
+      alert("資料載入失敗，請稍後再試！");
+    } finally { loadingOverlay.classList.add('d-none'); }
   }
-}
-// 顏色依分類
-function getColorByCategory(category) {
-  const colorMap = {
-    "牡管中心": "green",
-    "高管中心": "blue",
-    "秘書室": "darkmagenta",
-    "資產科": "goldenrod",
-    "阿管中心": "limegreen",
-    "工務科": "darkcyan",
-    "曾管中心": "tomato",
-    "甲管中心": "coral",
-  };
-  return colorMap[category] || "black";
-}
-function renderGeoJson(data) {
-  const controlLayers = L.control.layers(null, null, { collapsed: true }).addTo(map);
-  const layersByCategory = {};
-  data.features.forEach(feature => {
-    const category = feature.properties.保管單位;
-    if (!layersByCategory[category]) {
-      layersByCategory[category] = L.markerClusterGroup({showCoverageOnHover: false});
-      const color = getColorByCategory(category);
-      const nameWithIcon = `
-        <span style="
-          display:inline-block;
-          width:9px; height:9px;
-          background:${color};
-          margin-right:6px;
-          border-radius:50%;
-        "></span>${category}`;
-      controlLayers.addOverlay(layersByCategory[category], nameWithIcon);
-    }
-    const coords = feature.geometry.coordinates;
-    const lat = coords[1];
-    const lng = coords[0];
-    const marker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: "custom-marker",
-        html: `
-          <div style="
-            width:12px; height:12px;
-            background:${getColorByCategory(category)};
-            border-radius:50%;
-            border:2px solid white;
-          "></div>`
-      })
-    });
-    marker.on("click", () => {
-      $('#featureModal')
-        .on('show.bs.modal', () => {
-          map.dragging.disable();
-          map.scrollWheelZoom.disable();
-        })
-        .on('hidden.bs.modal', () => {
-          map.dragging.enable();
-          map.scrollWheelZoom.enable();
-        });
-      let tableContent = '<table border="1">';
-      for (let key in feature.properties) {
-        tableContent += `<tr><th>${key}</th><td>${feature.properties[key]}</td></tr>`;
+  function getColorByCategory(category) {
+    const colorMap = {
+      "牡管中心": "green", "高管中心": "blue", "秘書室": "darkmagenta",
+      "資產科": "goldenrod", "阿管中心": "limegreen", "工務科": "darkcyan",
+      "曾管中心": "tomato", "甲管中心": "coral"
+    };
+    return colorMap[category] || "black";
+  }
+  function renderGeoJson(data) {
+    const controlLayers = L.control.layers(null, null, { collapsed: true }).addTo(map);
+    const layersByCategory = {};
+    data.features.forEach(feature => {
+      const category = feature.properties.保管單位;
+      if (!layersByCategory[category]) {
+        layersByCategory[category] = L.markerClusterGroup({showCoverageOnHover: false});
+        const color = getColorByCategory(category);
+        const nameWithIcon = `<span style="display:inline-block; width:9px; height:9px; background:${color}; margin-right:6px; border-radius:50%;"></span>${category}`;
+        controlLayers.addOverlay(layersByCategory[category], nameWithIcon);
       }
-      tableContent += '</table>';
-      document.getElementById("feature-info").innerHTML = tableContent;
-      document.getElementById("feature-title").innerHTML = feature.properties['財產編號'];
-      $('#featureModal').modal('show');
-      const url = google_map_url + lat + ',' + lng;
-      $('#google_map')
-        .off('click')
-        .on('click', () => {window.open(google_map_url + lat + ',' + lng);});
-      $('.close').off().on('click', () => $('#featureModal').modal('hide'));
+      const coords = feature.geometry.coordinates;
+      const lat = coords[1];
+      const lng = coords[0];
+      const marker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: "custom-marker",
+          html: `<div style="width:12px; height:12px; background:${getColorByCategory(category)}; border-radius:50%; border:2px solid white;"></div>`
+        })
+      });
+      /* 點擊 Marker 觸發 Modal 優化邏輯 */
+      marker.on("click", () => {
+        let tableContent = '<table class="custom-feature-table">';
+        for (let key in feature.properties) {
+          const val = feature.properties[key] !== null && feature.properties[key] !== undefined ? feature.properties[key] : '-';
+          tableContent += `<tr><th>${key}</th><td>${val}</td></tr>`;
+        }
+        tableContent += '</table>';
+        document.getElementById("feature-info").innerHTML = tableContent;
+        document.getElementById("feature-title").innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-info-circle-fill text-primary" viewBox="0 0 16 16">
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+          </svg>
+          <span>財產詳情：${feature.properties['財產編號'] || ''}</span>
+        `;
+        $('#featureModal').modal('show');
+        $('#google_map').off('click').on('click', () => { window.open(google_map_url + lat + ',' + lng); });
+      });
+      layersByCategory[category].addLayer(marker);
     });
-    layersByCategory[category].addLayer(marker);
-  });
-  // 把所有分類 layer 加上地圖
-  for (let category in layersByCategory) {
-    map.addLayer(layersByCategory[category]);
-  }
-  var unit_list=document.getElementById("unit");
-    let inner="<option value>請選擇</option>";
+    for (let category in layersByCategory) { map.addLayer(layersByCategory[category]); }
+    var unit_list = document.getElementById("unit");
+    let inner = "<option value>請選擇</option>";
     let inner_list = [];
-    for (let i=0;i<vardata['features'].length;i++){
+    for (let i = 0; i < vardata['features'].length; i++) {
       let unit = vardata['features'][i].properties.保管單位;
-      if (!inner_list.includes(unit)){
-        inner=inner+'<option value='+unit+'>'+unit+'</option>';
+      if (!inner_list.includes(unit)) {
+        inner += `<option value="${unit}">${unit}</option>`;
         inner_list.push(unit);
       }
-    };
-    unit_list.innerHTML=inner;
-}
+    }
+    unit_list.innerHTML = inner;
+  }
   loadAllData();
-  L.control.fullscreen({
-    position: 'topleft',
-    forceSeparateButton: true,
-    forcePseudoFullscreen: true,
-    fullscreenElement: false
-  }).addTo(map);
+  L.control.fullscreen({ position: 'topleft', forceSeparateButton: true, forcePseudoFullscreen: true, fullscreenElement: false }).addTo(map);
   L.DomEvent.disableClickPropagation(document.getElementById('featureModal'));
-
   document.getElementById("confirm").addEventListener("click", () => {
     const tbody = document.getElementById("search_result_list");
-    tbody.innerHTML = ""; // 先清空上一筆結果
-    // 過濾符合條件的資料
+    tbody.innerHTML = "";
     const number_value = document.getElementById("number").value.trim();
     const unit_value = document.getElementById("unit").value;
     const people_value = document.getElementById("people").value.trim();
@@ -468,13 +391,12 @@ function renderGeoJson(data) {
     const qr_value = document.getElementById("qr").value;
     const results = vardata.features.filter(item => {
       const match_number = number_value === "" || ((item.properties.財產編號 || "").includes(number_value));
-      const match_unit = unit_value === "請選擇" || ((item.properties.保管單位 || "").includes(unit_value));
+      const match_unit = unit_value === "請選擇" || unit_value === "" || ((item.properties.保管單位 || "").includes(unit_value));
       const match_people = people_value === "" || ((item.properties.保管人 || "").includes(people_value));
       const match_card = card_value === "請選擇" || ((item.properties.有無貼牌 || "").includes(card_value));
       const match_qr = qr_value === "請選擇" || ((item.properties.有無QRCode || "").includes(qr_value));
       return match_number && match_unit && match_people && match_card && match_qr;
     });
-    // 將結果加入 tbody
     results.forEach(item => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -485,18 +407,32 @@ function renderGeoJson(data) {
       `;
       tbody.appendChild(tr);
     });
-    const btns = document.querySelectorAll("button.search-button");
-    btns.forEach(btn => {
+    document.querySelectorAll("button.search-button").forEach(btn => {
       btn.addEventListener("click", () => {
         map.flyTo([btn.getAttribute("lat"), btn.getAttribute("lng")], 18);
-        });
       });
+    });
     if (results.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4" style="text-align:center;">沒有符合的資料</td>`;
-      tbody.appendChild(tr);
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">沒有符合的資料</td></tr>`;
     }
-});
-  </script>
+  });
+  var featureModalEl = document.getElementById('featureModal');
+  featureModalEl.addEventListener('show.bs.modal', function () {
+    map.scrollWheelZoom.disable(); // 禁用滑鼠輪滾縮放
+    map.doubleClickZoom.disable(); // 禁用雙擊縮放
+    map.touchZoom.disable();       // 禁用手勢縮放
+    map.boxZoom.disable();         // 禁用拉框縮放
+    map.keyboard.disable();        // 禁用鍵盤操作
+    map.dragging.disable();        // 禁用地圖拖曳
+  });
+  featureModalEl.addEventListener('hidden.bs.modal', function () {
+    map.scrollWheelZoom.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
+    map.dragging.enable();
+  });
+</script>
 </body>
 </html>
