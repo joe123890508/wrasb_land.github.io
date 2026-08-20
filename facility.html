@@ -43,7 +43,11 @@
       flex-shrink: 0;
     }
     #map, #search { height: 95%; }
-    @media (max-width: 767.98px) {
+    @media (max-width: 768px) {
+      html, body {
+        height: auto;
+        overflow: auto;
+      }
       footer {
         height: 20px;
         line-height: 20px;
@@ -59,7 +63,7 @@
         margin-bottom: 0.5rem !important;
       }
       #map { 
-        flex: 1;
+        height: 35vh;
         max-height: 35vh;
       }
       /* 搜尋區塊高動態調整 */
@@ -85,7 +89,10 @@
         padding-top: 0.25rem;
         padding-bottom: 0.25rem;
       }
-      #search_result { max-height: 250px; }
+      #search_result {
+        height: 25vh;
+        max-height: 250px;
+       }
       #search_result table { font-size: 0.8rem; }
       #search_result th, #search_result td { padding: 0.3rem 0.2rem; }
       .search-button {
@@ -281,7 +288,7 @@
     </div>
   </div>
 </div>
-<footer class="bg-black text-white text-center">
+<footer class="bg-black text-white text-center mt-1">
   © <strong>2025 <a href="https://www.wra.gov.tw/wrasb/" class="text-decoration-none text-primary">WRASB</a></strong>.
   All rights reserved.
 </footer>
