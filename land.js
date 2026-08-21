@@ -331,3 +331,20 @@
       }
     );
   });
+  var featureModalEl = document.getElementById('featureModal');
+  featureModalEl.addEventListener('show.bs.modal', function () {
+    map.scrollWheelZoom.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+    map.dragging.disable();
+  });
+  featureModalEl.addEventListener('hidden.bs.modal', function () {
+    map.scrollWheelZoom.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
+    map.dragging.enable();
+  });
