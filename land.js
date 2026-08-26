@@ -348,3 +348,9 @@
     map.keyboard.enable();
     map.dragging.enable();
   });
+
+// 對外全域函式綁定，因為 ES6 模組（type="module"）
+window.change_county = change_county;
+window.change_town = change_town;
+window.change_village = change_village;
+window.generatePDF = generatePDF;
